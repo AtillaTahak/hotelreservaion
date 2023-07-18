@@ -1,9 +1,9 @@
 package types
 
 import (
-	"fmt"
 	"regexp"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -22,29 +22,43 @@ type CreateUserParams struct {
 	Email     string `json:"email"`
 	Password  string `json:"password"`
 }
+type UpdateUserParams struct {
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+}
 
-func (params *CreateUserParams) Validate() []error {
-	errors := []error{}
+func (params *UpdateUserParams) ToBSON() bson.M{
+	update := bson.M{}
+	if params.FirstName != "" {
+		update["firstName"] = params.FirstName
+	}
+	if params.LastName != "" {
+		update["lastName"] = params.LastName
+	}
+	return update
+}
+func (params *CreateUserParams) Validate() map[string]string {
+	errors := map[string]string{}
 	if len(params.Password) < minPasswordLength {
-		errors = append(errors,fmt.Errorf("password is too short"))
+		errors["Password"] = "password is too short"
 	}
 	if len(params.FirstName) < minFirstNameLength {
-		errors = append(errors,fmt.Errorf("first name is too short"))
+		errors["firstName"] = "first name is too short"
 	}
 	if len(params.LastName) < minLastNameLength {
-		errors = append(errors,fmt.Errorf("last name is too short"))
+		errors["lastName"] = "last name is too short"
 	}
 	if len(params.FirstName) > maxFirstNameLength {
-		errors = append(errors,fmt.Errorf("first name is too long"))
+		errors["firstName"] = "first name is too long"
 	}
 	if len(params.LastName) > maxLastNameLength {
-		errors = append(errors,fmt.Errorf("last name is too long"))
+		errors["lastName"] = "last name is too long"
 	}
 	if len(params.Email) > maxEmailLength {
-		errors = append(errors,fmt.Errorf("email is too long"))
+		errors["email"] = "email is too long"
 	}
 	if !isEmailValid(params.Email) {
-		errors = append(errors,fmt.Errorf("email is invalid"))
+		errors["email"] = "email is invalid"
 	}
 	return errors
 }
