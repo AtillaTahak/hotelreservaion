@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"hotelreservation/db"
 	"hotelreservation/types"
-	"io"
 	"log"
 	"net/http/httptest"
 	"testing"
@@ -59,11 +57,17 @@ func TestPostUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	bb, err := io.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal(err)
+	var user types.User
+	json.NewDecoder(resp.Body).Decode(&user)
+	if user.FirstName != params.FirstName {
+		t.Errorf("Expected %s, got %s", params.FirstName, user.FirstName)
 	}
-	fmt.Println(string(bb))
+	if user.LastName != params.LastName {
+		t.Errorf("Expected %s, got %s", params.LastName, user.LastName)
+	}
+	if user.Email != params.Email {
+		t.Errorf("Expected %s, got %s", params.Email, user.Email)
+	}
 
 	defer tdb.tearDown()
 }
