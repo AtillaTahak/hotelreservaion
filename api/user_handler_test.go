@@ -14,31 +14,34 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
 const (
-	testdburi = "mongodb://localhost:27017"
+	testdburi  = "mongodb://localhost:27017"
 	testdbname = "hotel-reservation-test"
-	)
+)
+
 type testdb struct {
 	db.UserStore
 }
+
 func (tdb *testdb) tearDown() {
 	if err := tdb.UserStore.Drop(context.TODO()); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func setupUserHandlerTest(t *testing.T) *testdb{
+func setupUserHandlerTest(t *testing.T) *testdb {
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(testdburi))
 	if err != nil {
 		log.Fatal(err)
 	}
 	return &testdb{
-		UserStore: db.NewMongoUserStore(client,testdbname),
+		UserStore: db.NewMongoUserStore(client, testdbname),
 	}
 }
 func TestPostUser(t *testing.T) {
 	tdb := setupUserHandlerTest(t)
-	
+
 	app := fiber.New()
 	userHandler := NewUserHandler(tdb.UserStore)
 	app.Post("/user", userHandler.HandlePostUser)
@@ -47,11 +50,11 @@ func TestPostUser(t *testing.T) {
 		FirstName: "John",
 		LastName:  "Doe",
 		Email:     "jhondoe@hotmail.com",
-		Password: "12345678",
+		Password:  "12345678",
 	}
 	b, _ := json.Marshal(params)
 
-	req := httptest.NewRequest("POST", "/user",bytes.NewReader(b))
+	req := httptest.NewRequest("POST", "/user", bytes.NewReader(b))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := app.Test(req)
 	if err != nil {
@@ -74,12 +77,12 @@ func TestPostUser(t *testing.T) {
 
 func TestGetUsers(t *testing.T) {
 	tdb := setupUserHandlerTest(t)
-	
+
 	app := fiber.New()
 	userHandler := NewUserHandler(tdb.UserStore)
 	app.Get("/users", userHandler.HandleGetUsers)
 
-	req := httptest.NewRequest("Get", "/user")
+	req := httptest.NewRequest("Get", "/user", nil)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := app.Test(req)
 	if err != nil {
