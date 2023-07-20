@@ -71,3 +71,24 @@ func TestPostUser(t *testing.T) {
 
 	defer tdb.tearDown()
 }
+
+func TestGetUsers(t *testing.T) {
+	tdb := setupUserHandlerTest(t)
+	
+	app := fiber.New()
+	userHandler := NewUserHandler(tdb.UserStore)
+	app.Get("/users", userHandler.HandleGetUsers)
+
+	req := httptest.NewRequest("Get", "/user")
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var users []types.User
+	json.NewDecoder(resp.Body).Decode(&users)
+	if len(users) != 0 {
+		t.Errorf("Expected %d, got %d", 0, len(users))
+	}
+	defer tdb.tearDown()
+}
