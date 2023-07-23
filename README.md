@@ -3,12 +3,11 @@
 
 > Description the project.
 
-
 ## Built With
 
-- Major languages
-- Frameworks
-- Technologies used
+- Major languages: Go
+- Frameworks : Fiber
+- Technologies used : Docker 
 
 ## Live Demo (if available)
 
@@ -30,7 +29,7 @@ To get a local copy up and running follow these simple example steps.
 ### Install
 
 ### Usage
-
+ > `docker run -it -p 27017:27017 --name mongodb -d mongo:latest`
 ### Run tests
 
 ### Deployment
