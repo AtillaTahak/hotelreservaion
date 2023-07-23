@@ -11,7 +11,7 @@ import (
 const hotelColl = "hotels"
 type HotelStore interface {
 	GetHotelByID(context.Context, string) (*types.Hotel, error)
-	//GetHotels(context.Context) ([]*types.Hotel, error)
+	GetHotels(context.Context) ([]*types.Hotel, error)
 	InsertHotel(context.Context, *types.Hotel) (*types.Hotel, error)
 	//DeleteHotel(context.Context, string) error
 	UpdateHotel(ctx context.Context, filter bson.M, update bson.M) error
@@ -28,6 +28,18 @@ func NewMongoHotelStore(client *mongo.Client) *MongoHotelStore {
 		client: client,
 		coll:   client.Database(DBNAME).Collection(hotelColl),
 	}
+}
+
+func (m *MongoHotelStore) GetHotels(ctx context.Context) ([]*types.Hotel, error) {
+	cur, err := m.coll.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	var hotels []*types.Hotel
+	if err := cur.All(ctx,&hotels); err != nil {
+		return nil, err
+	}
+	return hotels, nil
 }
 
 func (m *MongoHotelStore) Drop(ctx context.Context) error {
