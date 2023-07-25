@@ -30,6 +30,7 @@ func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
 		return err
 	}
 	//TODO: implement query params
+	// TODO: implement pagination
 
 	hotels, err := h.hotel.GetHotels(c.Context())
 	if err != nil {
