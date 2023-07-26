@@ -7,7 +7,7 @@
 
 - Major languages: Go
 - Frameworks : Fiber
-- Technologies used : Docker 
+- Technologies used : Docker , Mogodb 
 
 ## Live Demo (if available)
 
