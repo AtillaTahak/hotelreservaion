@@ -5,6 +5,8 @@ import (
 	"hotelreservation/types"
 
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type HotelHandler struct {
@@ -18,19 +20,20 @@ func NewHotelHandler(room db.RoomStore, hotel db.HotelStore) *HotelHandler {
 		hotel: hotel,
 	}
 }
-type HotelQueryParams struct {
-	Rooms bool
-	Rating int
-}
-
-
-func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
-	var qparams HotelQueryParams
-	if err := c.QueryParser(&qparams); err != nil {
+func (h *HotelHandler) HandleGetRooms(c *fiber.Ctx) error {
+	id := c.Params("id")
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
 		return err
 	}
-	//TODO: implement query params
-	// TODO: implement pagination
+	filter := bson.M{"hotelId": oid}
+	rooms, err := h.room.GetRooms(c.Context(), filter)
+	if err != nil {
+		return err
+	}
+	return c.JSON(rooms)
+}
+func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
 
 	hotels, err := h.hotel.GetHotels(c.Context())
 	if err != nil {

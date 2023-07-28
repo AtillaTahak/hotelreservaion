@@ -4,13 +4,14 @@ import (
 	"context"
 	"hotelreservation/types"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 const RoomColl = "rooms"
 type RoomStore interface {
-	//GetRoomByID(context.Context, string) (*types.Room, error)
-	//GetRooms(context.Context) ([]*types.Room, error)
+	GetRoomByID(context.Context, string) (*types.Room, error)
+	GetRooms(context.Context, bson.M) ([]*types.Room, error)
 	InsertRoom(context.Context, *types.Room) (*types.Room, error)
 	//DeleteRoom(context.Context, string) error
 	//UpdateRoom(ctx context.Context, filter bson.M, params types.UpdateRoomParams) error
@@ -30,6 +31,31 @@ func NewMongoRoomStore(client *mongo.Client, hotelStore HotelStore) *MongoRoomSt
 		coll:   client.Database(DBNAME).Collection(RoomColl),
 		HotelStore: hotelStore,
 	}
+}
+func (m *MongoRoomStore) GetRoomByID(ctx context.Context, id string) (*types.Room, error) {
+	var room types.Room
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	filter := bson.M{"_id": objID}
+	if err := m.coll.FindOne(ctx, filter).Decode(&room); err != nil {
+		return nil, err
+	}
+	return &room, nil
+}
+
+func (m *MongoRoomStore) GetRooms(ctx context.Context, filter bson.M) ([]*types.Room, error) {
+	var rooms []*types.Room
+	cur, err := m.coll.Find(ctx, filter)
+	println("cur", cur)
+	if err != nil {
+		return nil, err
+	}
+	if err := cur.All(ctx, &rooms); err != nil {
+		return nil, err
+	}
+	return rooms, nil
 }
 
 func (m *MongoRoomStore) Drop(ctx context.Context) error {

@@ -55,6 +55,7 @@ func main() {
 	//apiV1.Delete("/hotel/:id", hotelHandler.HandleDeleteHotel)
 	apiV1.Post("/hotel", hotelHandler.HandlePostHotel)
 	apiV1.Get("/hotel", hotelHandler.HandleGetHotels)
+	apiV1.Get("/hotel/:id/rooms", hotelHandler.HandleGetRooms)
 	//apiV1.Get("/hotel/:id", hotelHandler.HandleGetHotel)
 	//apiV1.Put("/hotel/:id", hotelHandler.HandlePutHotel)
 
