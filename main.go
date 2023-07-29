@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"hotelreservation/api"
+	"hotelreservation/api/middleware"
 	"hotelreservation/db"
 	"log"
 
@@ -45,10 +46,13 @@ func main() {
 		userHandler = api.NewUserHandler(userStore)
 		hotelHandler = api.NewHotelHandler(store)
 		app = fiber.New(config)
-		apiV1 = app.Group("/api/v1")
+		apiV1 = app.Group("/api/v1",middleware.JWTAuthentication)
+		auth = app.Group("/api")
 	
 
 	)
+	// auth handlers
+	auth.Post("/auth", userHandler.HandleAuthenticate)
 	//user handlers
 	apiV1.Delete("/user/:id", userHandler.HandleDeleteUser)
 	apiV1.Post("/user", userHandler.HandlePostUser)
