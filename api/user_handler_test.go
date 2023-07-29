@@ -32,7 +32,7 @@ func setupUserHandlerTest(t *testing.T) *testdb {
 		log.Fatal(err)
 	}
 	return &testdb{
-		UserStore: db.NewMongoUserStore(client, db.TestDB),
+		UserStore: db.NewMongoUserStore(client),
 	}
 }
 func TestPostUser(t *testing.T) {
