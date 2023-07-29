@@ -54,12 +54,10 @@ func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 	if err := c.BodyParser(&params); err != nil {
 		return err
 	}
-	fmt.Println("handlePost",params)
 	if errors := params.Validate(); len(errors) > 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(errors)
 	}
 	user, err := types.NewUserFromParams(&params)
-	fmt.Println("AfterValiDate",user)
 
 	if err != nil {
 		return err

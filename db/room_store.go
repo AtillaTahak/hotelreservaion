@@ -48,7 +48,6 @@ func (m *MongoRoomStore) GetRoomByID(ctx context.Context, id string) (*types.Roo
 func (m *MongoRoomStore) GetRooms(ctx context.Context, filter bson.M) ([]*types.Room, error) {
 	var rooms []*types.Room
 	cur, err := m.coll.Find(ctx, filter)
-	println("cur", cur)
 	if err != nil {
 		return nil, err
 	}
