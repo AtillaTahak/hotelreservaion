@@ -12,6 +12,8 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/joho/godotenv"
+
 )
 var config = fiber.Config{
 	ErrorHandler: func(ctx *fiber.Ctx, err error) error {
@@ -31,6 +33,10 @@ func main() {
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(db.DBURI))
 	if err != nil {
 		log.Fatal(err)
+	}
+	//load env variables
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
 	}
 
 	//handler initialization
