@@ -20,6 +20,8 @@ func NewUserHandler(userStore db.UserStore) *UserHandler {
 		userStore: userStore,
 	}
 }
+
+
 func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error{
 	var (
 		update types.UpdateUserParams

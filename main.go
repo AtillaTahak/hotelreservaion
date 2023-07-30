@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"hotelreservation/api"
+	"hotelreservation/api/middleware"
 	"hotelreservation/db"
 	"log"
 
@@ -11,6 +12,8 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/joho/godotenv"
+
 )
 var config = fiber.Config{
 	ErrorHandler: func(ctx *fiber.Ctx, err error) error {
@@ -31,6 +34,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	//load env variables
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	//handler initialization
 	var(
@@ -44,11 +51,15 @@ func main() {
 		}
 		userHandler = api.NewUserHandler(userStore)
 		hotelHandler = api.NewHotelHandler(store)
+		authHandler = api.NewAuthHandler(userStore)
 		app = fiber.New(config)
-		apiV1 = app.Group("/api/v1")
+		apiV1 = app.Group("/api/v1",middleware.JWTAuthentication)
+		auth = app.Group("/api")
 	
 
 	)
+	// auth handlers
+	auth.Post("/auth", authHandler.HandleAuthenticate)
 	//user handlers
 	apiV1.Delete("/user/:id", userHandler.HandleDeleteUser)
 	apiV1.Post("/user", userHandler.HandlePostUser)
