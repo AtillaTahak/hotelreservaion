@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"hotelreservation/db"
 	"hotelreservation/types"
-	"log"
 	"net/http/httptest"
 	"testing"
 
@@ -17,29 +16,33 @@ import (
 
 
 type testdb struct {
-	db.UserStore
+	client *mongo.Client
+	*db.Store
 }
 
-func (tdb *testdb) tearDown() {
-	if err := tdb.UserStore.Drop(context.TODO()); err != nil {
-		log.Fatal(err)
+func (tdb *testdb) tearDown(t *testing.T) {
+	if err := tdb.client.Database(db.TestDB).Drop(context.TODO()); err != nil {
+		t.Fatal(err)
 	}
 }
 
 func setupUserHandlerTest(t *testing.T) *testdb {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(db.DBURI))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(db.TestURI))
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	return &testdb{
-		UserStore: db.NewMongoUserStore(client),
+		client: client,
+		Store: &db.Store{
+			User: db.NewMongoUserStore(client),
+		},
 	}
 }
 func TestPostUser(t *testing.T) {
 	tdb := setupUserHandlerTest(t)
 
 	app := fiber.New()
-	userHandler := NewUserHandler(tdb.UserStore)
+	userHandler := NewUserHandler(tdb.Store.User)
 	app.Post("/user", userHandler.HandlePostUser)
 
 	params := types.CreateUserParams{
@@ -68,14 +71,14 @@ func TestPostUser(t *testing.T) {
 		t.Errorf("Expected %s, got %s", params.Email, user.Email)
 	}
 
-	defer tdb.tearDown()
+	defer tdb.tearDown(t)
 }
 
 func TestGetUsers(t *testing.T) {
 	tdb := setupUserHandlerTest(t)
 
 	app := fiber.New()
-	userHandler := NewUserHandler(tdb.UserStore)
+	userHandler := NewUserHandler(tdb.Store.User)
 	app.Get("/users", userHandler.HandleGetUsers)
 
 	req := httptest.NewRequest("Get", "/user", nil)
@@ -89,5 +92,5 @@ func TestGetUsers(t *testing.T) {
 	if len(users) != 0 {
 		t.Errorf("Expected %d, got %d", 0, len(users))
 	}
-	defer tdb.tearDown()
+	defer tdb.tearDown(t)
 }

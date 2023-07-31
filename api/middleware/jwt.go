@@ -30,7 +30,6 @@ func JWTAuthentication(c *fiber.Ctx) error {
 func validateToken(tokenStr string) (map[string]interface{}, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			fmt.Println("Unexpected signing method: %v", token.Header["alg"])
 			return nil, fmt.Errorf("unauthorized")
 		}
 		secret := os.Getenv("JWT_SECRET")
