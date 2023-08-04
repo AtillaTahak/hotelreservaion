@@ -30,6 +30,7 @@ To get a local copy up and running follow these simple example steps.
 
 ### Usage
  > `docker run -it -p 27017:27017 --name mongodb -d mongo:latest`
+ > go test ./... -v
 ### Run tests
 
 ### Deployment
