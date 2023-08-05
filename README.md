@@ -31,6 +31,7 @@ To get a local copy up and running follow these simple example steps.
 ### Usage
  > `docker run -it -p 27017:27017 --name mongodb -d mongo:latest`
  > go test ./... -v
+ > Time Format Example "2023-04-15T00:00:00Z"
 ### Run tests
 
 ### Deployment
