@@ -1,12 +1,14 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"hotelreservation/db"
 	"hotelreservation/types"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -59,7 +61,13 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid Credentials"})
 	}
-
+	available, err := h.isRoomAvailableForBooking(c.Context(), roomID, params)
+	if err != nil {
+		return err
+	}
+	if !available {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Room is not available","roomID": c.Params("id")} )
+	}
 	booking := types.Booking{
 		UserID: user.ID,
 		RoomID: roomID,
@@ -73,4 +81,19 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 		return err
 	}
 	return c.JSON(inserted)
+}
+
+func(h *RoomHandler) isRoomAvailableForBooking(c context.Context,id primitive.ObjectID, params BookRoomParams) (bool, error) {
+	where := bson.M{
+		"roomId": id,
+		"fromDate": bson.M{"$lte": params.FromDate},
+		"tillDate": bson.M{"$gte": params.TillDate},
+	}
+	bookings , err := h.store.Booking.GetBookings(c, where)
+	if err != nil {
+		return false,err
+	}
+	ok := len(bookings) == 0
+	return ok,nil
+
 }
