@@ -24,10 +24,11 @@ func insertTestUser(t *testing.T, userStore db.UserStore) *types.User {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = userStore.InsertUser(context.TODO(), user)
+	insertTestUserVar, err := userStore.InsertUser(context.TODO(), user)
 	if err != nil {
 		t.Fatal(err)
 	}
+	user.ID = insertTestUserVar.ID
 	return user
 }
 func TestAuthenticateFailure(t *testing.T) {
