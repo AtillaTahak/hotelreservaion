@@ -48,8 +48,8 @@ func TestPostUser(t *testing.T) {
 	params := types.CreateUserParams{
 		FirstName: "John",
 		LastName:  "Doe",
-		Email:     "jhondoe@hotmail.com",
-		Password:  "12345678",
+		Email:     "jhondoeHow@hotmail.com",
+		Password:  "supersecurepassword",
 	}
 	b, _ := json.Marshal(params)
 

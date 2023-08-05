@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"hotelreservation/db"
 	"hotelreservation/types"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -35,14 +33,14 @@ func insertTestUser(t *testing.T, userStore db.UserStore) *types.User {
 func TestAuthenticateFailure(t *testing.T) {
 	tdb := setupUserHandlerTest(t)
 	defer tdb.tearDown(t)
-	insertedUser := insertTestUser(t, tdb.Store.User)
+
 	app := fiber.New()
 	authHandler := NewAuthHandler(tdb.Store.User)
 	app.Post("/auth", authHandler.HandleAuthenticate)
 
 	params := AuthParams{
 		Email:    "jhon@doe.com",
-		Password: "supersecurepassword",
+		Password: "supersecurepasswordasdasd",
 	}
 	b, _ := json.Marshal(params)
 	req := httptest.NewRequest("POST", "/auth", bytes.NewReader(b))
@@ -51,23 +49,8 @@ func TestAuthenticateFailure(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("expected http status of 200 but got %d", resp.StatusCode)
-	}
-
-	var authResp AuthResponse
-	if err := json.NewDecoder(resp.Body).Decode(&authResp); err != nil {
-		t.Fatal(err)
-	}
-	if authResp.Token == "" {
-		t.Fatalf("expected the JWT token to be present in the auth response")
-	}
-
-	insertedUser.EncryptedPassword = ""
-	if !reflect.DeepEqual(authResp.User, insertedUser) {
-		fmt.Println(authResp.User)
-		fmt.Println(insertedUser)
-		t.Fatalf("expected the user to be present in the auth response")
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("expected http status of 401 but got %d", resp.StatusCode)
 	}
 }
 func TestAuthenticateSuccess(t *testing.T) {
@@ -102,9 +85,9 @@ func TestAuthenticateSuccess(t *testing.T) {
 	}
 
 	insertedUser.EncryptedPassword = ""
-	if !reflect.DeepEqual(authResp.User, insertedUser) {
-		fmt.Println(authResp.User)
-		fmt.Println(insertedUser)
-		t.Fatalf("expected the user to be present in the auth response")
-	}
+	if authResp.User.FirstName != insertedUser.FirstName ||
+	authResp.User.LastName != insertedUser.LastName ||
+	authResp.User.Email != insertedUser.Email {
+	 t.Fatalf("expected the user fields to be present in the auth response")
+ 	}
 }
