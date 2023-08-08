@@ -13,6 +13,7 @@ const BookingColl = "bookings"
 type BookingStore interface {
 	InsertBooking(context.Context, *types.Booking) (*types.Booking, error)
 	GetBookings(context.Context, bson.M) ([]*types.Booking, error)
+	GetBookingByID(context.Context, string) (*types.Booking, error)
 	//DeleteBooking(context.Context, string) error
 	//UpdateBooking(ctx context.Context, filter bson.M, params types.UpdateBookingParams) error
 	Dropper
@@ -32,6 +33,17 @@ func NewMongoBookingStore(client *mongo.Client) *MongoBookingStore {
 	}
 }
 
+func (m *MongoBookingStore) GetBookingByID(ctx context.Context, id string) (*types.Booking, error) {
+	var booking *types.Booking
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	if err := m.coll.FindOne(ctx, bson.M{"_id": objID}).Decode(&booking); err != nil {
+		return nil, err
+	}
+	return booking, nil
+}
 func (m *MongoBookingStore) InsertBooking(ctx context.Context, booking *types.Booking) (*types.Booking, error) {
 	resp, err := m.coll.InsertOne(ctx, booking);
 	if err != nil {
