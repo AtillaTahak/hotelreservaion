@@ -43,6 +43,14 @@ func NewRoomHandler(store *db.Store) *RoomHandler {
 	}
 }
 
+func (h *RoomHandler) HandleGetRooms(c *fiber.Ctx) error {
+	rooms, err := h.store.Room.GetRooms(c.Context(), bson.M{})
+	if err != nil {
+		return err
+	}
+	return c.JSON(rooms)
+}
+
 func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 	var params BookRoomParams
 

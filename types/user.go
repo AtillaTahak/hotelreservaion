@@ -7,15 +7,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
+
 const (
-	bcryptCost = 12
-	minPasswordLength = 8
+	bcryptCost         = 12
+	minPasswordLength  = 8
 	minFirstNameLength = 2
-	minLastNameLength = 2
+	minLastNameLength  = 2
 	maxFirstNameLength = 50
-	maxLastNameLength = 50
-	maxEmailLength = 254
+	maxLastNameLength  = 50
+	maxEmailLength     = 254
 )
+
 type CreateUserParams struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
@@ -27,7 +29,7 @@ type UpdateUserParams struct {
 	LastName  string `json:"lastName"`
 }
 
-func (params *UpdateUserParams) ToBSON() bson.M{
+func (params *UpdateUserParams) ToBSON() bson.M {
 	update := bson.M{}
 	if params.FirstName != "" {
 		update["firstName"] = params.FirstName
@@ -73,17 +75,17 @@ func isEmailValid(email string) bool {
 
 type User struct {
 	ID                primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	FirstName         string `bson:"firstName" json:"firstName"`
-	LastName          string `bson:"lastName" json:"lastName"`
-	Email             string `bson:"email" json:"email"`
-	EncryptedPassword string `bson:"encryptedPassword" json:"-"`
+	FirstName         string             `bson:"firstName" json:"firstName"`
+	LastName          string             `bson:"lastName" json:"lastName"`
+	Email             string             `bson:"email" json:"email"`
+	EncryptedPassword string             `bson:"encryptedPassword" json:"-"`
+	IsAdmin           bool               `bson:"isAdmin" json:"isAdmin"`
 }
-
 
 func NewUserFromParams(params *CreateUserParams) (*User, error) {
 	encpw, err := bcrypt.GenerateFromPassword([]byte(params.Password), bcryptCost)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	return &User{
 		FirstName:         params.FirstName,
