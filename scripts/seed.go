@@ -24,9 +24,7 @@ func seedUser(isAdmin bool, fname, lname, email,password string){
 		Email:     email,
 		Password: password,
 	})
-
 	user.IsAdmin = isAdmin;
-	
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,9 +32,8 @@ func seedUser(isAdmin bool, fname, lname, email,password string){
 	if err != nil {
 		log.Fatal(err)
 	}
-
-
 }
+//Rodo
 func seedHotel(name, location string, rating int) {
 	hotel := types.Hotel{
 		Name:     name,
