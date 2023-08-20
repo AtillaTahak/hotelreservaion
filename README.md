@@ -1,7 +1,7 @@
 
 # Project Name
 
-> Description the project.
+> this project for the hotels booking to backend 
 
 ## Built With
 
