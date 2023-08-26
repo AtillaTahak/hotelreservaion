@@ -46,6 +46,7 @@ To get a local copy up and running follow these simple example steps.
 - GitHub: [@atillatahak](github.com/atillatahak)
 - Twitter: [@atillaTahaa](twitter.com/atillaTahaa)
 - LinkedIn: [atillatahakordugum](https://www.linkedin.com/in/atillatahakordugum/)
+- Portfolio: [atillataha](https://atillataha.netlify.app)
 
 
 ## 🤝 Contributing
