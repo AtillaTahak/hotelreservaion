@@ -1,5 +1,5 @@
 
-# Project Name
+# Hotel Reservation
 
 > this project for the hotels booking to backend 
 
