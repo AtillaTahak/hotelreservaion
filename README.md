@@ -47,6 +47,7 @@ To get a local copy up and running follow these simple example steps.
 - Twitter: [@atillaTahaa](twitter.com/atillaTahaa)
 - LinkedIn: [atillatahakordugum](https://www.linkedin.com/in/atillatahakordugum/)
 - Portfolio: [atillataha](https://atillataha.netlify.app)
+- Youtube [@atillataha] (https://www.youtube.com/channel/UCmoD0x4Z9vdG2PCsI5p8FYg)
 
 
 ## 🤝 Contributing
