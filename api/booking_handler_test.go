@@ -2,15 +2,57 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"hotelreservation/api/middleware"
 	"hotelreservation/db/fixtures"
 	"hotelreservation/types"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
+
+func TestUserGetBooking(t *testing.T){
+	db := setupUserHandlerTest(t)
+	defer db.tearDown(t)
+
+	var (
+		user           = fixtures.AddUser(db.Store, "john", "doe", false)
+		hotel          = fixtures.AddHotel(db.Store, "Hilton", "New York", 3, nil)
+		room           = fixtures.AddRoom(db.Store, "small", 100, false, hotel.ID)
+		from           = time.Now()
+		to             = time.Now().AddDate(0, 0, 5)
+		booking        = fixtures.AddBooking(db.Store, user.ID, room.ID, from, to)
+		app            = fiber.New()
+		route            = app.Group("/", middleware.JWTAuthentication(db.Store.User))
+		bookingHandler = NewBookingHandler(db.Store)
+	)
+
+	route.Get("/:id", bookingHandler.HandleGetBooking)
+	fmt.Print("booking id ->",booking.ID.Hex())
+	req := httptest.NewRequest("GET",fmt.Sprintf("/%s",booking.ID.Hex()), nil)
+	req.Header.Set("X-Access-Token", CreateTokenFromUser(user))
+	resq, err := app.Test(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resq.StatusCode != http.StatusOK {
+		t.Fatalf("expected http status of 200 but got %d", resq.StatusCode)
+	}
+
+	var bookingRes *types.Booking
+	if err := json.NewDecoder(resq.Body).Decode(&bookingRes); err != nil {
+		t.Fatal(err)
+	}
+	if bookingRes.ID.Hex() != booking.ID.Hex() {
+		t.Fatalf("expected booking id to be %s but got %s", booking.ID.Hex(), bookingRes.ID.Hex())
+	}
+
+
+
+}
 
 //online get booking Admin
 
@@ -19,25 +61,22 @@ func TestAdminGetBookings(test *testing.T) {
 	defer db.tearDown(test)
 
 	var (
-		adminUser  = fixtures.AddUser(db.Store, "admin", "admin", true)
-		user           = fixtures.AddUser(db.Store, "john", "doe", true)
+		adminUser      = fixtures.AddUser(db.Store, "admin", "admin", true)
+		user           = fixtures.AddUser(db.Store, "john", "doe", false)
 		hotel          = fixtures.AddHotel(db.Store, "Hilton", "New York", 3, nil)
 		room           = fixtures.AddRoom(db.Store, "small", 100, false, hotel.ID)
 		from           = time.Now()
 		to             = time.Now().AddDate(0, 0, 5)
 		booking        = fixtures.AddBooking(db.Store, user.ID, room.ID, from, to)
 		app            = fiber.New()
-		admin          = app.Group("/", middleware.JWTAuthentication(db.User), middleware.AdminAuth)
+		admin          = app.Group("/", middleware.JWTAuthentication(db.Store.User), middleware.AdminAuth)
 		bookingHandler = NewBookingHandler(db.Store)
 	)
 
 	_ = booking
 	admin.Get("/", bookingHandler.HandleGetBookings)
-	req, err := http.NewRequest("GET", "/", nil)
+	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Set("X-Access-Token", CreateTokenFromUser(adminUser))
-	if err != nil {
-		test.Fatal(err)
-	}
 	resq, err := app.Test(req)
 
 	if err != nil {
@@ -53,5 +92,15 @@ func TestAdminGetBookings(test *testing.T) {
 	}
 	if len(bookings) != 1 {
 		test.Fatalf("expected 1 booking but got %d", len(bookings))
+	}
+
+	reqTest := httptest.NewRequest("GET", "/", nil)
+	reqTest.Header.Set("X-Access-Token", CreateTokenFromUser(user))
+	resq, err = app.Test(reqTest)
+	if err != nil {
+		test.Fatal(err)
+	}
+	if resq.StatusCode == http.StatusOK {
+		test.Fatalf("expected http status of 403 but got %d", resq.StatusCode)
 	}
 }
