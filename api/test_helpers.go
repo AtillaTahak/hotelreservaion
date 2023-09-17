@@ -1,10 +1,12 @@
 package api
+
 import (
+	"context"
+	"hotelreservation/db"
+	"testing"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"hotelreservation/db"
-	"context"
-	"testing"
 )
 
 type testdb struct {
@@ -18,15 +20,19 @@ func (tdb *testdb) tearDown(t *testing.T) {
 	}
 }
 
+// TODO
 func setupUserHandlerTest(t *testing.T) *testdb {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(db.TestURI))
+	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(db.TestURI))
 	if err != nil {
 		t.Fatal(err)
 	}
 	return &testdb{
 		client: client,
 		Store: &db.Store{
-			User: db.NewMongoUserStore(client),
+			Hotel:   db.NewMongoHotelStore(client,db.TestDB),
+			User:    db.NewMongoUserStore(client,db.TestDB),
+			Room:    db.NewMongoRoomStore(client, db.NewMongoHotelStore(client,db.TestDB),db.TestDB),
+			Booking: db.NewMongoBookingStore(client,db.TestDB),
 		},
 	}
 }

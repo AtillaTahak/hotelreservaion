@@ -28,10 +28,10 @@ type MongoUserStore struct {
 	client *mongo.Client
 }
 
-func NewMongoUserStore(client *mongo.Client) *MongoUserStore {
+func NewMongoUserStore(client *mongo.Client,getDbName string) *MongoUserStore {
 	return &MongoUserStore{
 		client:client ,
-		coll:  client.Database(DBNAME).Collection(userColl),
+		coll:  client.Database(getDbName).Collection(userColl),
 	}
 }
 

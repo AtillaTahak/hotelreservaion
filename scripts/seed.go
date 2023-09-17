@@ -24,12 +24,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	hotelStore := db.NewMongoHotelStore(client)
+	hotelStore := db.NewMongoHotelStore(client,db.DBNAME)
 	store := &db.Store{
-		User:    db.NewMongoUserStore(client),
-		Room:    db.NewMongoRoomStore(client, hotelStore),
-		Booking: db.NewMongoBookingStore(client),
-		Hotel:   db.NewMongoHotelStore(client),
+		User:    db.NewMongoUserStore(client,db.DBNAME),
+		Room:    db.NewMongoRoomStore(client, hotelStore,db.DBNAME),
+		Booking: db.NewMongoBookingStore(client,db.DBNAME),
+		Hotel:   db.NewMongoHotelStore(client,db.DBNAME),
 	}
 	user := fixtures.AddUser(store, "james", "foo", false)
 	admin := fixtures.AddUser(store, "admin", "admin", true)

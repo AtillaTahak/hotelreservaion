@@ -27,10 +27,10 @@ type MongoBookingStore struct {
 	coll   *mongo.Collection
 }
 
-func NewMongoBookingStore(client *mongo.Client) *MongoBookingStore {
+func NewMongoBookingStore(client *mongo.Client,getDbName string) *MongoBookingStore {
 	return &MongoBookingStore{
 		client: client,
-		coll:   client.Database(DBNAME).Collection(BookingColl),
+		coll:   client.Database(getDbName).Collection(BookingColl),
 	}
 }
 func (m *MongoBookingStore) UpdateBooking(ctx context.Context, id string, update bson.M) error {
