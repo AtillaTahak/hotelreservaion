@@ -19,6 +19,7 @@ func TestUserGetBooking(t *testing.T){
 	defer db.tearDown(t)
 
 	var (
+		nonAuthUser	   = fixtures.AddUser(db.Store, "James", "Foo", false)
 		user           = fixtures.AddUser(db.Store, "john", "doe", false)
 		hotel          = fixtures.AddHotel(db.Store, "Hilton", "New York", 3, nil)
 		room           = fixtures.AddRoom(db.Store, "small", 100, false, hotel.ID)
@@ -49,6 +50,17 @@ func TestUserGetBooking(t *testing.T){
 	if bookingRes.ID.Hex() != booking.ID.Hex() {
 		t.Fatalf("expected booking id to be %s but got %s", booking.ID.Hex(), bookingRes.ID.Hex())
 	}
+
+	reqTest := httptest.NewRequest("GET", fmt.Sprintf("/%s",booking.ID.Hex()), nil)
+	reqTest.Header.Set("X-Access-Token", CreateTokenFromUser(nonAuthUser))
+	resq, err = app.Test(reqTest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resq.StatusCode == http.StatusOK {
+		t.Fatalf("expected http status of 403 but got %d", resq.StatusCode)
+	}
+
 
 
 
