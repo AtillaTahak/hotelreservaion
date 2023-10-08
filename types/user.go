@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"regexp"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -9,14 +10,27 @@ import (
 )
 
 const (
-	bcryptCost         = 12
-	minPasswordLength  = 8
-	minFirstNameLength = 2
-	minLastNameLength  = 2
-	maxFirstNameLength = 50
-	maxLastNameLength  = 50
-	maxEmailLength     = 254
+	bcryptCost      = 12
+	minFirstNameLen = 2
+	minLastNameLen  = 2
+	minPasswordLen  = 7
 )
+
+type UpdateUserParams struct {
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+}
+
+func (p UpdateUserParams) ToBSON() bson.M {
+	m := bson.M{}
+	if len(p.FirstName) > 0 {
+		m["firstName"] = p.FirstName
+	}
+	if len(p.LastName) > 0 {
+		m["lastName"] = p.LastName
+	}
+	return m
+}
 
 type CreateUserParams struct {
 	FirstName string `json:"firstName"`
@@ -24,53 +38,31 @@ type CreateUserParams struct {
 	Email     string `json:"email"`
 	Password  string `json:"password"`
 }
-type UpdateUserParams struct {
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-}
 
-func (params *UpdateUserParams) ToBSON() bson.M {
-	update := bson.M{}
-	if params.FirstName != "" {
-		update["firstName"] = params.FirstName
-	}
-	if params.LastName != "" {
-		update["lastName"] = params.LastName
-	}
-	return update
-}
-func (params *CreateUserParams) Validate() map[string]string {
+func (params CreateUserParams) Validate() map[string]string {
 	errors := map[string]string{}
-	if len(params.Password) < minPasswordLength {
-		errors["Password"] = "password is too short"
+	if len(params.FirstName) < minFirstNameLen {
+		errors["firstName"] = fmt.Sprintf("firstName length should be at least %d characters", minFirstNameLen)
 	}
-	if len(params.FirstName) < minFirstNameLength {
-		errors["firstName"] = "first name is too short"
+	if len(params.LastName) < minLastNameLen {
+		errors["lastName"] = fmt.Sprintf("lastName length should be at least %d characters", minLastNameLen)
 	}
-	if len(params.LastName) < minLastNameLength {
-		errors["lastName"] = "last name is too short"
-	}
-	if len(params.FirstName) > maxFirstNameLength {
-		errors["firstName"] = "first name is too long"
-	}
-	if len(params.LastName) > maxLastNameLength {
-		errors["lastName"] = "last name is too long"
-	}
-	if len(params.Email) > maxEmailLength {
-		errors["email"] = "email is too long"
+	if len(params.Password) < minPasswordLen {
+		errors["password"] = fmt.Sprintf("password length should be at least %d characters", minPasswordLen)
 	}
 	if !isEmailValid(params.Email) {
-		errors["email"] = "email is invalid"
+		errors["email"] = fmt.Sprintf("email %s is invalid", params.Email)
 	}
 	return errors
 }
+
 func IsValidPassword(encpw, pw string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(encpw), []byte(pw)) == nil
 }
-func isEmailValid(email string) bool {
-	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9.!#$%&'*+/=?^_` + "`" + `{|}~-]+@[a-zA-Z0-9` +
-		`-]+(?:\.[a-zA-Z0-9` + `-]+)*$`)
-	return emailRegex.MatchString(email)
+
+func isEmailValid(e string) bool {
+	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	return emailRegex.MatchString(e)
 }
 
 type User struct {
@@ -78,11 +70,11 @@ type User struct {
 	FirstName         string             `bson:"firstName" json:"firstName"`
 	LastName          string             `bson:"lastName" json:"lastName"`
 	Email             string             `bson:"email" json:"email"`
-	EncryptedPassword string             `bson:"encryptedPassword" json:"-"`
+	EncryptedPassword string             `bson:"EncryptedPassword" json:"-"`
 	IsAdmin           bool               `bson:"isAdmin" json:"isAdmin"`
 }
 
-func NewUserFromParams(params *CreateUserParams) (*User, error) {
+func NewUserFromParams(params CreateUserParams) (*User, error) {
 	encpw, err := bcrypt.GenerateFromPassword([]byte(params.Password), bcryptCost)
 	if err != nil {
 		return nil, err

@@ -1,14 +1,17 @@
-package util
+package api
 
 import (
 	"github.com/atillatahak/hotel-reservation/types"
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetAuthUser(c *fiber.Ctx) (*types.User, error) {
+func AdminAuth(c *fiber.Ctx) error {
 	user, ok := c.Context().UserValue("user").(*types.User)
 	if !ok {
-		return nil, fiber.ErrForbidden
+		return ErrUnAuthorized()
 	}
-	return user, nil
+	if !user.IsAdmin {
+		return ErrUnAuthorized()
+	}
+	return c.Next()
 }

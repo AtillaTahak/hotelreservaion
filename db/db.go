@@ -1,15 +1,15 @@
 package db
 
-const (
-	DBNAME = "hotel-reservation"
-	DBURI  = "mongodb://localhost:27017"
-	TestDB = "test"
-	TestURI = "mongodb://localhost:27017/testDb"
-)
+const MongoDBNameEnvName = "MONGO_DB_NAME"
+
+type Pagination struct {
+	Limit int64
+	Page  int64
+}
 
 type Store struct {
-	User  UserStore
-	Room  RoomStore
-	Hotel HotelStore
+	User    UserStore
+	Hotel   HotelStore
+	Room    RoomStore
 	Booking BookingStore
 }
