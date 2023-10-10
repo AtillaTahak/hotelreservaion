@@ -1,65 +1,64 @@
-package middleware
+package api
 
 import (
 	"fmt"
-	"hotelreservation/db"
+	"net/http"
 	"os"
 	"time"
 
+	"github.com/atillatahak/hotel-reservation/db"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 func JWTAuthentication(userStore db.UserStore) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		token, ok := c.GetReqHeaders()["X-Access-Token"]
+		token, ok := c.GetReqHeaders()["X-Api-Token"]
 		if !ok {
-			return fmt.Errorf("unauthorized")
+			fmt.Println("token not present in the header")
+			return ErrUnAuthorized()
 		}
 		claims, err := validateToken(token)
 		if err != nil {
-			fmt.Println(err,"token validation error")
-
 			return err
 		}
-		expiry := claims["expiry"].(float64)
-		if time.Now().Unix() > int64(expiry) {
-			return fmt.Errorf("token expired")
+		expiresFloat := claims["expires"].(float64)
+		expires := int64(expiresFloat)
+		// Check token expiration
+		if time.Now().Unix() > expires {
+			return NewError(http.StatusUnauthorized, "token expired")
 		}
 		userID := claims["id"].(string)
 		user, err := userStore.GetUserByID(c.Context(), userID)
 		if err != nil {
-			fmt.Println(err,"failed to get user by id")
-			return err
+			return ErrUnAuthorized()
 		}
-		//c.Locals("user", user)
+		// Set the current authenticated user to the context.
 		c.Context().SetUserValue("user", user)
 		return c.Next()
 	}
 }
 
-func validateToken(tokenStr string) (map[string]interface{}, error) {
+func validateToken(tokenStr string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unauthorized")
+			fmt.Println("invalid signing method", token.Header["alg"])
+			return nil, ErrUnAuthorized()
 		}
 		secret := os.Getenv("JWT_SECRET")
 		return []byte(secret), nil
 	})
 	if err != nil {
-		fmt.Println("failed to parser JWT toke", err)
-		return nil, fmt.Errorf("unauthorized")
+		fmt.Println("failed to parse JWT token:", err)
+		return nil, ErrUnAuthorized()
 	}
 	if !token.Valid {
 		fmt.Println("invalid token")
-		return nil, fmt.Errorf("unauthorized")
+		return nil, ErrUnAuthorized()
 	}
-
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		fmt.Println("invalid token")
-		return nil, fmt.Errorf("unauthorized")
+		return nil, ErrUnAuthorized()
 	}
 	return claims, nil
-
 }

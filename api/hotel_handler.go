@@ -1,9 +1,7 @@
 package api
 
 import (
-	"hotelreservation/db"
-	"hotelreservation/types"
-
+	"github.com/atillatahak/hotel-reservation/db"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -18,49 +16,58 @@ func NewHotelHandler(store *db.Store) *HotelHandler {
 		store: store,
 	}
 }
+
 func (h *HotelHandler) HandleGetRooms(c *fiber.Ctx) error {
 	id := c.Params("id")
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return err
+		return ErrInvalidID()
 	}
-	filter := bson.M{"hotelId": oid}
+
+	filter := bson.M{"hotelID": oid}
 	rooms, err := h.store.Room.GetRooms(c.Context(), filter)
 	if err != nil {
-		return err
+		return ErrNotResourceNotFound("hotel")
 	}
 	return c.JSON(rooms)
-}
-func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
-
-	hotels, err := h.store.Hotel.GetHotels(c.Context())
-	if err != nil {
-		return err
-	}
-	return c.JSON(hotels)
 }
 
 func (h *HotelHandler) HandleGetHotel(c *fiber.Ctx) error {
 	id := c.Params("id")
-	oid, err := primitive.ObjectIDFromHex(id)
+	hotel, err := h.store.Hotel.GetHotelByID(c.Context(), id)
 	if err != nil {
-		return err
-	}
-	hotel, err := h.store.Hotel.GetHotelByID(c.Context(), oid)
-	if err != nil {
-		return err
+		return ErrNotResourceNotFound("hotel")
 	}
 	return c.JSON(hotel)
 }
 
-func (h *HotelHandler) HandlePostHotel(c *fiber.Ctx) error {
-	var params types.Hotel
-	if err := c.BodyParser(&params); err != nil {
-		return err
+type ResourceResp struct {
+	Results int `json:"results"`
+	Data    any `json:"data"`
+	Page    int `json:"page"`
+}
+
+type HotelQueryParams struct {
+	db.Pagination
+	Rating int
+}
+
+func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
+	var params HotelQueryParams
+	if err := c.QueryParser(&params); err != nil {
+		return ErrBadRequest()
 	}
-	hotel, err := h.store.Hotel.InsertHotel(c.Context(), &params)
+	filter := db.Map{
+		"rating": params.Rating,
+	}
+	hotels, err := h.store.Hotel.GetHotels(c.Context(), filter, &params.Pagination)
 	if err != nil {
-		return err
+		return ErrNotResourceNotFound("hotels")
 	}
-	return c.JSON(hotel)
+	resp := ResourceResp{
+		Data:    hotels,
+		Results: len(hotels),
+		Page:    int(params.Page),
+	}
+	return c.JSON(resp)
 }

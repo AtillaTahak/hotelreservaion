@@ -2,12 +2,10 @@ package api
 
 import (
 	"errors"
-	"hotelreservation/db"
-	"hotelreservation/types"
 
+	"github.com/atillatahak/hotel-reservation/db"
+	"github.com/atillatahak/hotel-reservation/types"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -21,45 +19,38 @@ func NewUserHandler(userStore db.UserStore) *UserHandler {
 	}
 }
 
-
-func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error{
+func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 	var (
-		update types.UpdateUserParams
+		params types.UpdateUserParams
 		userID = c.Params("id")
 	)
-	if err := c.BodyParser(&update); err != nil {
+	if err := c.BodyParser(&params); err != nil {
+		return ErrBadRequest()
+	}
+	filter := db.Map{"_id": userID}
+	if err := h.userStore.UpdateUser(c.Context(), filter, params); err != nil {
 		return err
 	}
-	oid, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		return err
-	}
-	filter := bson.M{"_id": oid}
-	if err = h.userStore.UpdateUser(c.Context(), filter, update); err != nil {
-		return err
-	}
-	return c.JSON(fiber.Map{"updated": userID})
+	return c.JSON(map[string]string{"updated": userID})
 }
+
 func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
-	var (
-		id = c.Params("id")
-	)
-	err := h.userStore.DeleteUser(c.Context(),id)
-	if err != nil {
+	userID := c.Params("id")
+	if err := h.userStore.DeleteUser(c.Context(), userID); err != nil {
 		return err
 	}
-	return c.JSON(fiber.Map{"deleted": id})
+	return c.JSON(map[string]string{"deleted": userID})
 }
+
 func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 	var params types.CreateUserParams
 	if err := c.BodyParser(&params); err != nil {
-		return err
+		return ErrBadRequest()
 	}
 	if errors := params.Validate(); len(errors) > 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(errors)
+		return c.JSON(errors)
 	}
-	user, err := types.NewUserFromParams(&params)
-
+	user, err := types.NewUserFromParams(params)
 	if err != nil {
 		return err
 	}
@@ -69,24 +60,25 @@ func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 	}
 	return c.JSON(insertedUser)
 }
-func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
-	users, err := h.userStore.GetUsers(c.Context())
-	if err != nil {
-		return err
-	}
-	return c.JSON(users)
-}
 
 func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 	var (
 		id = c.Params("id")
 	)
-	user, err := h.userStore.GetUserByID(c.Context(),id)
+	user, err := h.userStore.GetUserByID(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "User not found"})
+			return c.JSON(map[string]string{"error": "not found"})
 		}
 		return err
 	}
 	return c.JSON(user)
+}
+
+func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
+	users, err := h.userStore.GetUsers(c.Context())
+	if err != nil {
+		return ErrNotResourceNotFound("user")
+	}
+	return c.JSON(users)
 }

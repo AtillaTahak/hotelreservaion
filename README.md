@@ -1,71 +1,47 @@
+# Hotel reservation backend
 
-# Hotel Reservation
+# Project environment variables
+```
+HTTP_LISTEN_ADDRESS=:3000
+JWT_SECRET=somethingsupersecretthatNOBODYKNOWS
+MONGO_DB_NAME=hotel-reservation
+MONGO_DB_URL=mongodb://localhost:27017
+MONGO_DB_URL_TEST=mongodb://localhost:27017
+```
 
-> this project for the hotels booking to backend 
+## Project outline
+- users -> book room from an hotel 
+- admins -> going to check reservation/bookings 
+- Authentication and authorization -> JWT tokens
+- Hotels -> CRUD API -> JSON
+- Rooms -> CRUD API -> JSON
+- Scripts -> database management -> seeding, migration
 
-## Built With
+## Resources
+### Mongodb driver 
+Documentation
+```
+https://mongodb.com/docs/drivers/go/current/quick-start
+```
 
-- Major languages: Go, Context
-- Frameworks : Fiber
-- Technologies used : Docker , Mogodb 
+Installing mongodb client
+```
+go get go.mongodb.org/mongo-driver/mongo
+```
 
-## Live Demo (if available)
+### gofiber 
+Documentation
+```
+https://gofiber.io
+```
 
-[Live Demo Link](https://livedemo.com)
+Installing gofiber
+```
+go get github.com/gofiber/fiber/v2
+```
 
-
-## Getting Started
-
-**This is an example of how you may give instructions on setting up your project locally.**
-**Modify this file to match your project, remove sections that don't apply. For example: delete the testing section if the currect project doesn't require testing.**
-
-
-To get a local copy up and running follow these simple example steps.
-
-### Prerequisites
-
-### Setup
-
-### Install
-
-### Usage
- > `docker run -it -p 27017:27017 --name mongodb -d mongo:latest`
- > go test ./... -v
- > Time Format Example "2023-04-15T00:00:00Z"
- > make test
-### Run tests
-
-### Deployment
-
-
-
-## Authors
-
-👤 **Author1**
-
-- GitHub: [@atillatahak](github.com/atillatahak)
-- Twitter: [@atillaTahaa](twitter.com/atillaTahaa)
-- LinkedIn: [atillatahakordugum](https://www.linkedin.com/in/atillatahakordugum/)
-- Portfolio: [atillataha](https://atillataha.netlify.app)
-- Youtube [@atillataha] (https://www.youtube.com/channel/UCmoD0x4Z9vdG2PCsI5p8FYg)
-
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-
-Feel free to check the [issues page](../../issues/).
-
-## Show your support
-
-Give a ⭐️ if you like this project!
-
-## Acknowledgments
-
-- Hat tip to anyone whose code was used
-- Inspiration
-- etc
-
-## 📝 License
-
-This project is [MIT](./MIT.md) licensed.
+## Docker
+### Installing mongodb as a Docker container
+```
+docker run --name mongodb -d mongo:latest -p 27017:27017
+```
